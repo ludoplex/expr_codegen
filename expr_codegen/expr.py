@@ -63,13 +63,12 @@ def append_node(node, output_exprs):
 
     """
     if isinstance(node, Mul):
-        if node.args[0] == -1 or node.args[0] == 1:
+        if node.args[0] in [-1, 1]:
             # 可能是-1也可能是1.0
             for arg in node.args[1:]:
-                if arg.is_Atom:
-                    continue
-                output_exprs.append(arg)
-                # print(1, arg)
+                if not arg.is_Atom:
+                    output_exprs.append(arg)
+                            # print(1, arg)
         else:
             output_exprs.append(node)
             # print(2, node)
@@ -218,22 +217,14 @@ def get_children(func, func_kwargs, expr, output_exprs, output_symbols, date, as
                     # print(expr.args[i], 'is_Atom 2')
                     continue
                 output_exprs = append_node(expr.args[i], output_exprs)
-        else:
-            # ts_sum(OPEN, 5)*ts_sum(RETURNS, 5) ('cl',) [{('ts', 'asset', 'date')}, {('ts', 'asset', 'date')}] 6 alpha_008
-            pass
-            # if isinstance(expr, Mul):
-            #     output_exprs = append_node(expr, output_exprs)
-
-        # 按需返回，当前是基础算子就返回下一层信息，否则返回当前
-        if curr[0] == CL:
-            if expr.is_Symbol:
-                # 汇总符号列表
-                output_symbols.append(expr)
-            # 返回子中出现过的集合{ts cs gp}
-            return unique
-        else:
+        if curr[0] != CL:
             # 当前算子，非列算子，直接返回，如{ts} {cs} {gp}
             return {curr}
+        if expr.is_Symbol:
+            # 汇总符号列表
+            output_symbols.append(expr)
+        # 返回子中出现过的集合{ts cs gp}
+        return unique
     finally:
         # __level__ -= 1
         pass
@@ -281,13 +272,7 @@ def replace_exprs(exprs):
 
 def get_node_name(node):
     """得到节点名"""
-    if hasattr(node, 'name'):
-        # 如 ts_arg_max
-        node_name = node.name
-    else:
-        # 如 log
-        node_name = str(node.func)
-    return node_name
+    return node.name if hasattr(node, 'name') else str(node.func)
 
 
 def _replace__ts_sum__to__ts_mean(e):
@@ -393,10 +378,14 @@ def _replace__ts_delay__to__ts_delta(e):
             for arg in node.args:
                 if arg.is_Mul:
                     if arg.args[0] == -1 and arg.args[1].is_Function and get_node_name(arg.args[1]) == 'ts_delay':
-                        # 添加ts_delta(x, y)
-                        new_args.append(ts_delta(arg.args[1].args[0], arg.args[1].args[1]))
-                        # 添加-x
-                        new_args.append(-arg.args[1].args[0])
+                        new_args.extend(
+                            (
+                                ts_delta(
+                                    arg.args[1].args[0], arg.args[1].args[1]
+                                ),
+                                -arg.args[1].args[0],
+                            )
+                        )
                     else:
                         new_args.append(arg)
                 else:
@@ -414,11 +403,7 @@ def _replace__ts_delay__to__ts_delta(e):
 
 
 def is_meaningless(e):
-    if _meaningless__ts_xxx_1(e):
-        return True
-    if _meaningless__xx_xx(e):
-        return True
-    return False
+    return True if _meaningless__ts_xxx_1(e) else bool(_meaningless__xx_xx(e))
 
 
 def _meaningless__ts_xxx_1(e):

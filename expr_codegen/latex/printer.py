@@ -14,37 +14,35 @@ class ExprLatexPrinter(LatexPrinter):
         subscriptidx = -1  # func.find("_")
         func = func.replace('_', r'\_')
         if func in accepted_latex_functions:
-            name = r"\%s" % func
+            return r"\%s" % func
         elif len(func) == 1 or func.startswith('\\') or subscriptidx == 1 or superscriptidx == 1:
-            name = func
+            return func
+        elif superscriptidx > 0 and subscriptidx > 0:
+            return r"\operatorname{%s}%s" % (
+                func[: min(subscriptidx, superscriptidx)],
+                func[min(subscriptidx, superscriptidx) :],
+            )
+        elif superscriptidx > 0:
+            return r"\operatorname{%s}%s" % (
+                func[:superscriptidx],
+                func[superscriptidx:],
+            )
+        elif subscriptidx > 0:
+            return r"\operatorname{%s}%s" % (
+                func[:subscriptidx],
+                func[subscriptidx:],
+            )
         else:
-            if superscriptidx > 0 and subscriptidx > 0:
-                name = r"\operatorname{%s}%s" % (
-                    func[:min(subscriptidx, superscriptidx)],
-                    func[min(subscriptidx, superscriptidx):])
-            elif superscriptidx > 0:
-                name = r"\operatorname{%s}%s" % (
-                    func[:superscriptidx],
-                    func[superscriptidx:])
-            elif subscriptidx > 0:
-                name = r"\operatorname{%s}%s" % (
-                    func[:subscriptidx],
-                    func[subscriptidx:])
-            else:
-                name = r"\operatorname{%s}" % func
-        return name
+            return r"\operatorname{%s}" % func
 
     def _print_Symbol(self, expr: Symbol, style='plain'):
         name: str = self._settings['symbol_names'].get(expr)
-        if name is not None:
-            return name
-
-        return expr.name.replace('_', r'\_')
+        return name if name is not None else expr.name.replace('_', r'\_')
 
 
 def latex(expr, mode='equation*', mul_symbol='times', **settings):
     """表达式转LATEX字符串"""
-    settings.update({'mode': mode, 'mul_symbol': mul_symbol})
+    settings |= {'mode': mode, 'mul_symbol': mul_symbol}
     return ExprLatexPrinter(settings).doprint(expr)
 
 

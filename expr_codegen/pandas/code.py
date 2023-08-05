@@ -47,8 +47,8 @@ def codegen(exprs_ldl: ListDictList, exprs_src, syms_dst, filename='template.py.
             func_code = []
             for kv in vv:
                 if kv is None:
-                    func_code.append(f"    # " + '=' * 40)
-                    exprs_dst.append(f"# #" + '=' * 40 + func_name)
+                    func_code.append("    # " + '=' * 40)
+                    exprs_dst.append("# #" + '=' * 40 + func_name)
                 else:
                     va, ex = kv
                     func_code.append(f"    # {va} = {ex}\n    df['{va}'] = {p.doprint(ex)}")

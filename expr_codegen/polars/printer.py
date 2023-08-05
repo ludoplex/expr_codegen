@@ -36,10 +36,10 @@ class PolarsStrPrinter(StrPrinter):
             if Function in classes:
                 i = classes.index(Function)
                 classes = tuple(c for c in classes[:i] if \
-                                c.__name__ == classes[0].__name__ or \
-                                c.__name__.endswith("Base")) + classes[i:]
+                                    c.__name__ == classes[0].__name__ or \
+                                    c.__name__.endswith("Base")) + classes[i:]
             for cls in classes:
-                printmethodname = '_print_' + cls.__name__
+                printmethodname = f'_print_{cls.__name__}'
                 printmethod = getattr(self, printmethodname, None)
                 if printmethod is not None:
                     return printmethod(expr, **kwargs)
@@ -54,101 +54,101 @@ class PolarsStrPrinter(StrPrinter):
 
     def _print_Equality(self, expr):
         PREC = precedence(expr)
-        return "%s==%s" % (self.parenthesize(expr.args[0], PREC), self.parenthesize(expr.args[1], PREC))
+        return f"{self.parenthesize(expr.args[0], PREC)}=={self.parenthesize(expr.args[1], PREC)}"
 
     def _print_if_else(self, expr):
-        return "pl.when(%s).then(%s).otherwise(%s)" % (self._print(expr.args[0]), self._print(expr.args[1]), self._print(expr.args[2]))
+        return f"pl.when({self._print(expr.args[0])}).then({self._print(expr.args[1])}).otherwise({self._print(expr.args[2])})"
 
     def _print_ts_mean(self, expr):
         PREC = precedence(expr)
-        return "%s.rolling_mean(%s)" % (self.parenthesize(expr.args[0], PREC), self._print(expr.args[1]))
+        return f"{self.parenthesize(expr.args[0], PREC)}.rolling_mean({self._print(expr.args[1])})"
 
     def _print_ts_std_dev(self, expr):
         PREC = precedence(expr)
-        return "%s.rolling_std(%s, ddof=0)" % (self.parenthesize(expr.args[0], PREC), self._print(expr.args[1]))
+        return f"{self.parenthesize(expr.args[0], PREC)}.rolling_std({self._print(expr.args[1])}, ddof=0)"
 
     def _print_ts_arg_max(self, expr):
-        return "_rolling_argmax(%s, %s)" % (self._print(expr.args[0]), self._print(expr.args[1]))
+        return f"_rolling_argmax({self._print(expr.args[0])}, {self._print(expr.args[1])})"
 
     def _print_ts_arg_min(self, expr):
-        return "_rolling_argmin(%s, %s)" % (self._print(expr.args[0]), self._print(expr.args[1]))
+        return f"_rolling_argmin({self._print(expr.args[0])}, {self._print(expr.args[1])})"
 
     def _print_ts_product(self, expr):
         PREC = precedence(expr)
-        return "%s.rolling_apply(lambda x: np.product(x.to_numpy()), window_size=%s)" % (self.parenthesize(expr.args[0], PREC), self._print(expr.args[1]))
+        return f"{self.parenthesize(expr.args[0], PREC)}.rolling_apply(lambda x: np.product(x.to_numpy()), window_size={self._print(expr.args[1])})"
 
     def _print_ts_max(self, expr):
         PREC = precedence(expr)
-        return "%s.rolling_max(%s)" % (self.parenthesize(expr.args[0], PREC), self._print(expr.args[1]))
+        return f"{self.parenthesize(expr.args[0], PREC)}.rolling_max({self._print(expr.args[1])})"
 
     def _print_ts_min(self, expr):
         PREC = precedence(expr)
-        return "%s.rolling_min(%s)" % (self.parenthesize(expr.args[0], PREC), self._print(expr.args[1]))
+        return f"{self.parenthesize(expr.args[0], PREC)}.rolling_min({self._print(expr.args[1])})"
 
     def _print_ts_delta(self, expr):
         PREC = precedence(expr)
-        return "%s.diff(%s)" % (self.parenthesize(expr.args[0], PREC), self._print(expr.args[1]))
+        return f"{self.parenthesize(expr.args[0], PREC)}.diff({self._print(expr.args[1])})"
 
     def _print_ts_delay(self, expr):
         PREC = precedence(expr)
-        return "%s.shift(%s)" % (self.parenthesize(expr.args[0], PREC), self._print(expr.args[1]))
+        return f"{self.parenthesize(expr.args[0], PREC)}.shift({self._print(expr.args[1])})"
 
     def _print_ts_corr(self, expr):
-        return "pl.rolling_corr(%s, %s, window_size=%s, ddof=0)" % (self._print(expr.args[0]), self._print(expr.args[1]), self._print(expr.args[2]))
+        return f"pl.rolling_corr({self._print(expr.args[0])}, {self._print(expr.args[1])}, window_size={self._print(expr.args[2])}, ddof=0)"
 
     def _print_ts_covariance(self, expr):
-        return "pl.rolling_cov(%s, %s, window_size=%s, ddof=0)" % (self._print(expr.args[0]), self._print(expr.args[1]), self._print(expr.args[2]))
+        return f"pl.rolling_cov({self._print(expr.args[0])}, {self._print(expr.args[1])}, window_size={self._print(expr.args[2])}, ddof=0)"
 
     def _print_ts_rank(self, expr):
-        return "_rolling_rank(%s, %s)" % (self._print(expr.args[0]), self._print(expr.args[1]))
+        return f"_rolling_rank({self._print(expr.args[0])}, {self._print(expr.args[1])})"
 
     def _print_ts_sum(self, expr):
         PREC = precedence(expr)
-        return "%s.rolling_sum(%s)" % (self.parenthesize(expr.args[0], PREC), self._print(expr.args[1]))
+        return f"{self.parenthesize(expr.args[0], PREC)}.rolling_sum({self._print(expr.args[1])})"
 
     def _print_ts_decay_linear(self, expr):
-        return "_ts_decay_linear(%s, %s)" % (self._print(expr.args[0]), self._print(expr.args[1]))
+        return f"_ts_decay_linear({self._print(expr.args[0])}, {self._print(expr.args[1])})"
 
     def _print_cs_rank(self, expr):
         # TODO: 此处最好有官方的解决方法
-        return "_rank_pct(%s)" % self._print(expr.args[0])
+        return f"_rank_pct({self._print(expr.args[0])})"
 
     def _print_cs_scale(self, expr):
-        return "_scale(%s)" % self._print(expr.args[0])
+        return f"_scale({self._print(expr.args[0])})"
 
     def _print_log(self, expr):
         PREC = precedence(expr)
         if expr.args[0].is_Number:
-            return "np.log(%s)" % expr.args[0]
+            return f"np.log({expr.args[0]})"
         else:
-            return "%s.log()" % self.parenthesize(expr.args[0], PREC)
+            return f"{self.parenthesize(expr.args[0], PREC)}.log()"
 
     def _print_Abs(self, expr):
         PREC = precedence(expr)
         if expr.args[0].is_Number:
-            return "np.abs(%s)" % expr.args[0]
+            return f"np.abs({expr.args[0]})"
         else:
-            return "%s.abs()" % self.parenthesize(expr.args[0], PREC)
+            return f"{self.parenthesize(expr.args[0], PREC)}.abs()"
 
     def _print_Max(self, expr):
-        return "pl.max_horizontal([%s, %s])" % (self._print(expr.args[0]), self._print(expr.args[1]))
+        return f"pl.max_horizontal([{self._print(expr.args[0])}, {self._print(expr.args[1])}])"
 
     def _print_Min(self, expr):
-        return "pl.min_horizontal([%s, %s])" % (self._print(expr.args[0]), self._print(expr.args[1]))
+        return f"pl.min_horizontal([{self._print(expr.args[0])}, {self._print(expr.args[1])}])"
 
     def _print_sign(self, expr):
         PREC = precedence(expr)
         if expr.args[0].is_Number:
-            return "np.sign(%s)" % expr.args[0]
+            return f"np.sign({expr.args[0]})"
         else:
-            return "%s.sign()" % self.parenthesize(expr.args[0], PREC)
+            return f"{self.parenthesize(expr.args[0], PREC)}.sign()"
 
     def _print_signed_power(self, expr):
         # 太长了，所以这里简化一下
-        return "_signed_power(%s, %s)" % (self._print(expr.args[0]), self._print(expr.args[1]))
+        return f"_signed_power({self._print(expr.args[0])}, {self._print(expr.args[1])})"
 
     def _print_gp_rank(self, expr):
-        return "_rank_pct(%s)" % self._print(expr.args[1])
+        return f"_rank_pct({self._print(expr.args[1])})"
 
     def _print_gp_neutralize(self, expr):
-        return "_neutralize(%s)" % self._print(expr.args[1])
+        return f"_neutralize({self._print(expr.args[1])})"

@@ -115,12 +115,12 @@ def hierarchy_pos(G, root, levels=None, width=1., height=1.):
     def make_levels(levels, node=root, currentLevel=0, parent=None):
         """Compute the number of nodes for each level
         """
-        if not currentLevel in levels:
+        if currentLevel not in levels:
             levels[currentLevel] = {TOTAL: 0, CURRENT: 0}
         levels[currentLevel][TOTAL] += 1
         neighbors = G.predecessors(node)
         for neighbor in neighbors:
-            if not neighbor == parent:
+            if neighbor != parent:
                 levels = make_levels(levels, neighbor, currentLevel + 1, node)
         return levels
 
@@ -131,7 +131,7 @@ def hierarchy_pos(G, root, levels=None, width=1., height=1.):
         levels[currentLevel][CURRENT] += 1
         neighbors = G.predecessors(node)
         for neighbor in neighbors:
-            if not neighbor == parent:
+            if neighbor != parent:
                 pos = make_pos(pos, neighbor, currentLevel + 1, node, vert_loc - vert_gap)
         return pos
 
@@ -139,5 +139,5 @@ def hierarchy_pos(G, root, levels=None, width=1., height=1.):
         levels = make_levels({})
     else:
         levels = {l: {TOTAL: levels[l], CURRENT: 0} for l in levels}
-    vert_gap = height / (max([l for l in levels]) + 1)
+    vert_gap = height / (max(list(levels)) + 1)
     return make_pos({})

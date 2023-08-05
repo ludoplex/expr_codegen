@@ -47,7 +47,7 @@ def stringify_for_sympy(f):
         while len(stack[-1][1]) == stack[-1][0].arity:
             prim, args = stack.pop()
             string = convert_inverse_prim(prim, args)
-            if len(stack) == 0:
+            if not stack:
                 break  # If stack is empty, all nodes should have been seen
             stack[-1][1].append(string)
     return string
@@ -56,10 +56,7 @@ def stringify_for_sympy(f):
 def is_invalid(e, pset):
     if _invalid_atom_infinite(e):
         return True
-    if _invalid_number_type(e, pset):
-        return True
-
-    return False
+    return bool(_invalid_number_type(e, pset))
 
 
 def _invalid_atom_infinite(e):
@@ -67,11 +64,7 @@ def _invalid_atom_infinite(e):
     # 根是单元素，直接返回
     if e.is_Atom:
         return True
-    # 有无限值
-    for node in preorder_traversal(e):
-        if node.is_infinite:
-            return True
-    return False
+    return any(node.is_infinite for node in preorder_traversal(e))
 
 
 def _invalid_number_type(e, pset):
@@ -80,23 +73,19 @@ def _invalid_number_type(e, pset):
     for node in preorder_traversal(e):
         if not node.is_Function:
             continue
-        if hasattr(node, 'name'):
-            node_name = node.name
-        else:
-            node_name = str(node.func)
+        node_name = node.name if hasattr(node, 'name') else str(node.func)
         prim = pset.mapping.get(node_name, None)
         if prim is None:
             continue
         for i, arg in enumerate(prim.args):
-            if issubclass(arg, np.ndarray):
-                if node.args[i].is_Number:
-                    return True
-            elif issubclass(arg, int):
-                # 应当是整数，结果却是浮点
-                if node.args[i].is_Float:
-                    return True
-            elif issubclass(arg, float):
-                pass
+            if (
+                issubclass(arg, np.ndarray)
+                and node.args[i].is_Number
+                or not issubclass(arg, np.ndarray)
+                and issubclass(arg, int)
+                and node.args[i].is_Float
+            ):
+                return True
     return False
 
 

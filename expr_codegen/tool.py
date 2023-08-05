@@ -88,11 +88,7 @@ class ExprTool:
     def reduce(self, repl, redu):
         """减少中间变量数量，有利用减少内存占用"""
 
-        exprs_dict = {}
-
-        # 不做改动，直接生成
-        for variable, expr in repl:
-            exprs_dict[variable] = simplify(expr)
+        exprs_dict = {variable: simplify(expr) for variable, expr in repl}
         for variable, expr in redu:
             exprs_dict[variable] = simplify(expr)
 
@@ -165,7 +161,7 @@ class ExprTool:
         代码字符串
 
         """
-        assert style in ('polars', 'pandas')
+        assert style in {'polars', 'pandas'}
 
         if not fast:
             exprs_src = replace_exprs(exprs_src)

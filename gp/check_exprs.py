@@ -48,7 +48,7 @@ toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max
 # %%
 
 LOG_DIR = pathlib.Path('log')
-with open(LOG_DIR / f'hall_of_fame.pkl', 'rb') as f:
+with open(LOG_DIR / 'hall_of_fame.pkl', 'rb') as f:
     invalid_ind = pickle.load(f)
 
 for i, ind in enumerate(invalid_ind):

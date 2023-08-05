@@ -50,10 +50,7 @@ class ListDictList:
         """过滤空值"""
         new_list = []
         for row in self._list:
-            try_del1 = []
-            for k, v in row.items():
-                if len(v) == 0:
-                    try_del1.append(k)
+            try_del1 = [k for k, v in row.items() if len(v) == 0]
             for k in try_del1:
                 row.pop(k)
             if len(row) > 0:
@@ -121,7 +118,7 @@ def chain_create(nested_list):
     last_row = None
     for row in product(*neighbor_inter):
         # 判断两两是否重复
-        result = sum([x == y for x, y in zip(row[:-1], row[1:])])
+        result = sum(x == y for x, y in zip(row[:-1], row[1:]))
         if last_min > result:
             last_min = result
             last_row = row
@@ -140,7 +137,7 @@ def chain_create(nested_list):
         if hh is not None:
             d[hh] = 0
         for l in ll:
-            if (l == hh) or (l == tt):
+            if l in [hh, tt]:
                 continue
             d[l] = 1
         if tt is not None:
@@ -244,9 +241,8 @@ def merge_nodes_1(G: nx.DiGraph, *args):
                 continue
             dic = G.nodes[node]
             key = dic['key']
-            expr = dic['expr']
-            symbols = dic['symbols']
             if key[0] == CL:
+                expr = dic['expr']
                 if is_NegativeX(expr):
                     # 检查表达式是否很简单, 是就替换，可能会替换多个
                     skip_expr_node(G, node)
@@ -256,6 +252,7 @@ def merge_nodes_1(G: nx.DiGraph, *args):
                     if len(succ) == 1:
                         skip_expr_node(G, node)
             else:
+                symbols = dic['symbols']
                 # 复制一次，防止修改后报错
                 for p in pred.copy():
                     # 在下游同一表达式中使用了多次，不替换
@@ -379,7 +376,7 @@ def dag_end(G):
     """有向无环图流转"""
     exprs_ldl = ListDictList()
 
-    for i, generation in enumerate(nx.topological_generations(G)):
+    for generation in nx.topological_generations(G):
         exprs_ldl.next_row()
         for node in generation:
             key = G.nodes[node]['key']

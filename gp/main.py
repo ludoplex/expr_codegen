@@ -193,7 +193,7 @@ if __name__ == "__main__":
     pop, log, hof = main()
 
     # 保存名人堂
-    with open(LOG_DIR / f'hall_of_fame.pkl', 'wb') as f:
+    with open(LOG_DIR / 'hall_of_fame.pkl', 'wb') as f:
         pickle.dump(hof, f)
 
     print('=' * 60)
